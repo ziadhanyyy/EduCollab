@@ -12,9 +12,9 @@ namespace EduCollab.Application.Interfaces
     {
         Task<IEnumerable<NotificationDto>> GetUserNotificationsAsync(string Id);
         Task<bool> MarkAllAsReadAsync(string userId);
-        Task CreateAndSendAsync(string userId, int? groupId, string message, NotificationType type);
-        Task SendMeetingRemindersAsync(int groupId, MeetingDto meeting);
-        Task NotifyMaterialUploadedAsync(int groupId, string uploaderName, StudyMaterialDto material);
-        Task NotifyMessageAsync(int groupId, MessageDto message);
+        Task CreateAndSendAsync(string userId, string? groupId, string message, NotificationType type);
+        Task SendMeetingRemindersAsync(string groupId, MeetingDto meeting);
+        Task NotifyMaterialUploadedAsync(string groupId, string uploaderName, StudyMaterialDto material);
+        Task NotifyMessageAsync(string groupId, MessageDto message);
     }
 }

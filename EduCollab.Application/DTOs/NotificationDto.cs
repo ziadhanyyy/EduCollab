@@ -11,7 +11,7 @@ namespace EduCollab.Application.DTOs
     string Id,
     string Message,
     NotificationType Type,
-    int? GroupId,
+    string? GroupId,
     bool IsRead,
     DateTime CreatedAt
 );
