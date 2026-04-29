@@ -14,12 +14,11 @@ namespace EduCollab.Application.DTOs
     string StudentId,
     string StudentName,
     JoinRequestStatus Status,
-    string? Message,
     DateTime RequestedAt
 );
 
     public record CreateJoinRequestDto(
-        int GroupId
+        string GroupId
     );
 
     public record ReviewJoinRequestDto(

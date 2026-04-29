@@ -31,7 +31,7 @@ namespace EduCollab.Domain.Entities
         
         public Guid CreatorId { get; set; }
         [ForeignKey(nameof(CreatorId))]
-        public ApplicationUser Creator { get; set; }
+        public ApplicationUser ?Creator { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public ICollection<GroupMember> Members { get; set; } = new List<GroupMember>();
