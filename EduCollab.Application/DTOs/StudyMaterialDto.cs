@@ -22,4 +22,6 @@ namespace EduCollab.Application.DTOs
     public record AddTagDto(
         string Tag
 );
+    public record RemoveTagDto(
+        string tagId);
 }

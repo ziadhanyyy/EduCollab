@@ -17,10 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\EduCollab.Application\EduCollab.Application.csproj" />
     <ProjectReference Include="..\EduCollab.Domain\EduCollab.Domain.csproj" />
     <ProjectReference Include="..\EduCollab.Infrastructure\EduCollab.Infrastructure.csproj" />
