@@ -15,7 +15,7 @@ namespace EduCollab.Application.Interfaces
         Task<IEnumerable<StudyMaterialDto>> SearchMaterialsByTagAsync(string groupId, string tag);
         Task<StudyMaterialDto?> AddTagAsync(string materialId, string userId, string tag);
         Task<bool> DeleteMaterialAsync(string materialId, string userId);
-        Task<(byte[] Data, string ContentType, string FileName)?> DownloadMaterialAsync(string materialId);
+        Task<(byte[] Data, string ContentType, string FileName)?> DownloadMaterialAsync(string materialId,string userid);
         Task<StudyMaterialDto> RemoveTagAsync(string userId, string tagId);
     }
 }

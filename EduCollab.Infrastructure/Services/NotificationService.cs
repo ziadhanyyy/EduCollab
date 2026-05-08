@@ -34,7 +34,7 @@ namespace EduCollab.Infrastructure.Services
         {
             var uid = Guid.Parse(userId);
 
-            var notification = new Notification
+            var noti = new Notification
             {
                 UserId = uid,
                 GroupId =  !string.IsNullOrEmpty(groupId) ? Guid.Parse(groupId) :(Guid?)null,
@@ -42,9 +42,9 @@ namespace EduCollab.Infrastructure.Services
                 Type = type
             };
 
-            _context.Notifications.Add(notification);
+            _context.Notifications.Add(noti);
             await _context.SaveChangesAsync(); 
-            var noti = _context.Notifications.FirstOrDefault(notification);
+      
             var ndto = new NotificationDto(
                 noti.Id.ToString(),
                 noti.Message,
@@ -62,7 +62,7 @@ namespace EduCollab.Infrastructure.Services
         public async Task<IEnumerable<NotificationDto>> GetUserNotificationsAsync(string Id)
         {
             var uid = Guid.Parse(Id);
-            return await _context.Notifications.Where(u => u.Id == uid)
+            return await _context.Notifications.Where(u => u.UserId == uid)
                 .OrderByDescending(u => u.CreatedAt)
                 .Select(n => new NotificationDto(
                     n.Id.ToString(),
@@ -85,9 +85,11 @@ namespace EduCollab.Infrastructure.Services
 
         public async  Task NotifyMaterialUploadedAsync(string groupId, string uploaderName, StudyMaterialDto material)
         {
-            var members= await _context.GroupMembers.Where(g=>g.Id.ToString() == groupId && g.UserId.ToString() != material.UploaderId)
-                         .Select(g=>g.UserId)
-                         .ToListAsync();
+            var gid = Guid.Parse(groupId);
+            var members = await _context.GroupMembers
+                .Where(g => g.GroupId == gid && g.UserId.ToString() != material.UploaderId)
+                .Select(g => g.UserId)
+                .ToListAsync();
             var msg = $"{uploaderName} uploaded '{material.OriginalFileName}'.";
             foreach(var  userId in members)
             {
@@ -98,10 +100,10 @@ namespace EduCollab.Infrastructure.Services
                     Message = msg,
                     Type = NotificationType.NewMaterial
                 });
-               await _context.SaveChangesAsync();
-                await _groupHub.Clients.Group(groupId).MaterialUploaded(material);
 
             }
+            await _context.SaveChangesAsync();
+            await _groupHub.Clients.Group(groupId).MaterialUploaded(material);
         }
 
         public async Task NotifyMessageAsync(string groupId, MessageDto message)
@@ -111,8 +113,11 @@ namespace EduCollab.Infrastructure.Services
 
         public async Task SendMeetingRemindersAsync(string groupId, MeetingDto meeting)
         {
-            var members=  await _context.GroupMembers.Where(g=>g.Id.ToString()==groupId)
-                .Select(g=>g.UserId).ToListAsync();
+            var gid = Guid.Parse(groupId);
+            var members = await _context.GroupMembers
+                .Where(g => g.GroupId == gid)
+                .Select(g => g.UserId)
+                .ToListAsync();
             var reminderMsg = meeting.MeetingUrl != null
            ? $"Meeting '{meeting.Title}' starts in 1 hour. Join: {meeting.MeetingUrl}"
            : $"Meeting '{meeting.Title}' starts in 1 hour at: {meeting.OfflineAddress}";
