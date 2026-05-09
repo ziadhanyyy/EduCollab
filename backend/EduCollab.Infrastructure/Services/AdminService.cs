@@ -124,7 +124,7 @@ namespace EduCollab.Infrastructure.Services
             if (g.ApprovalStatus != GroupApprovalStatus.Pending)
                 throw new ConflictException("Group is not pending.");
 
-            g.ApprovalStatus = GroupApprovalStatus.Approved;
+            g.ApprovalStatus = GroupApprovalStatus.Rejected;
             await _context.SaveChangesAsync();
 
             return new GroupDto(

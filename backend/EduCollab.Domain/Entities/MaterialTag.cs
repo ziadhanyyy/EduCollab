@@ -13,10 +13,12 @@ namespace EduCollab.Domain.Entities
         [Key]
         public Guid Id { get; set; }
         [Required]
-        [MaxLength(50)]
+        
         public Guid StudyMaterialId { get; set; } 
         [ForeignKey(nameof(StudyMaterialId))]
         public StudyMaterial StudyMaterial { get; set; } = null!;
+        [Required]
+        [MaxLength(50)]
         public string Tag { get; set; } = string.Empty;
     }
 }
