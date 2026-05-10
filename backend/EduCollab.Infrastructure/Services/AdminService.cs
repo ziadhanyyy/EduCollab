@@ -18,10 +18,13 @@ namespace EduCollab.Infrastructure.Services
     {
         private readonly AppDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
-        public AdminService(AppDbContext context, UserManager<ApplicationUser> userManager)
+        private readonly INotificationService _notificationService;
+
+        public AdminService(AppDbContext context, UserManager<ApplicationUser> userManager, INotificationService notificationService)
         {
             _context = context;
-            _userManager= userManager;
+            _userManager = userManager;
+            _notificationService = notificationService;
         }
         public async Task<bool> ApproveCreatorAsync(string creatorId)
         {
@@ -62,6 +65,12 @@ namespace EduCollab.Infrastructure.Services
 
             g.ApprovalStatus = GroupApprovalStatus.Approved;
             await _context.SaveChangesAsync();
+
+            await _notificationService.CreateAndSendAsync(
+                g.CreatorId.ToString(),
+                g.Id.ToString(),
+                $"Your group '{g.Name}' has been approved!",
+                NotificationType.GroupApproved);
 
             return new GroupDto(
                 g.Id.ToString(), g.Name, g.Subject, g.Description, g.MaxMembers,
@@ -126,6 +135,12 @@ namespace EduCollab.Infrastructure.Services
 
             g.ApprovalStatus = GroupApprovalStatus.Rejected;
             await _context.SaveChangesAsync();
+
+            await _notificationService.CreateAndSendAsync(
+                g.CreatorId.ToString(),
+                g.Id.ToString(),
+                $"Your group '{g.Name}' has been rejected.",
+                NotificationType.GroupRejected);
 
             return new GroupDto(
                 g.Id.ToString(), g.Name, g.Subject, g.Description, g.MaxMembers,

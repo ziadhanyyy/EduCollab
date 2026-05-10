@@ -14,7 +14,9 @@ namespace EduCollab.Domain.Enums
         NewMaterial,
         NewMessage,
         GroupApproved,
-        GroupRejected
+        GroupRejected,
+        NewGroupPendingReview,  // 7 — sent to admins when a new group is created
+        NewJoinRequest          // 8 — sent to creator when a student requests to join
     }
 
 }

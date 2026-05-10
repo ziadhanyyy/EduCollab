@@ -96,7 +96,8 @@ namespace EduCollab.API.Controllers
         [HttpGet("{materialId}/download")]
         public async Task<IActionResult> DownloadMaterial(string materialId)
         {
-            var result = await _materialService.DownloadMaterialAsync(materialId);
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            var result = await _materialService.DownloadMaterialAsync(materialId, userId!);
 
             return File(
                 result!.Value.Data,

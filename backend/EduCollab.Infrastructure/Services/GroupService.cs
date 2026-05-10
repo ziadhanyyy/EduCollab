@@ -17,7 +17,13 @@ namespace EduCollab.Infrastructure.Services
     public class GroupService : IGroupService
     {
         private readonly AppDbContext _context;
-        public GroupService(AppDbContext context) {  _context = context; }
+        private readonly INotificationService _notificationService;
+
+        public GroupService(AppDbContext context, INotificationService notificationService)
+        {
+            _context = context;
+            _notificationService = notificationService;
+        }
         public async Task<GroupDto> CreateGroupAsync(string ownerId, CreateGroupDto dto)
         {
             if (!Guid.TryParse(ownerId, out Guid uid))
@@ -65,6 +71,12 @@ namespace EduCollab.Infrastructure.Services
              .Include(g => g.Creator)
             .Include(g => g.Members)
             .FirstAsync(g => g.Id == group.Id);
+
+            await _notificationService.NotifyAdminsAsync(
+                created.Id.ToString(),
+                $"{created.Creator!.DisplayName} submitted a new group '{created.Name}' for review.",
+                NotificationType.NewGroupPendingReview);
+
              return new GroupDto(
                         created.Id.ToString(),
                         created.Name,
@@ -108,11 +120,9 @@ namespace EduCollab.Infrastructure.Services
             var created = await _context.Groups
              .Include(g => g.Creator)
             .Include(g => g.Members)
-            .FirstAsync(g => g.Id == gid);
+            .FirstOrDefaultAsync(g => g.Id == gid);
             if (created == null)
                 throw new NotFoundException("Group not found.");
-            if (created.ApprovalStatus != GroupApprovalStatus.Approved)
-                throw new ForbiddenException("Group is not approved.");
             return new GroupDto(
                        created.Id.ToString(),
                        created.Name,
@@ -128,6 +138,25 @@ namespace EduCollab.Infrastructure.Services
                        created.Creator.DisplayName,
                        created.CreatedAt,
                        created.Members.Count);
+        }
+
+        public async Task<IEnumerable<JoinRequestDto>> GetMyJoinRequestsAsync(string studentId)
+        {
+            if (!Guid.TryParse(studentId, out var uid))
+                throw new BadRequestException("Invalid user id.");
+
+            return await _context.JoinRequests
+                .Include(jr => jr.Group)
+                .Where(jr => jr.StudentId == uid && jr.Status == JoinRequestStatus.Pending)
+                .Select(jr => new JoinRequestDto(
+                    jr.Id.ToString(),
+                    jr.GroupId.ToString(),
+                    jr.Group.Name,
+                    jr.StudentId.ToString(),
+                    studentId,
+                    jr.Status,
+                    jr.RequestedAt))
+                .ToListAsync();
         }
 
         public async Task<IEnumerable<JoinRequestDto>> GetGroupJoinRequestsAsync(string groupId, string creatorId)
@@ -163,10 +192,10 @@ namespace EduCollab.Infrastructure.Services
            .Where(gm => gm.UserId == uid)
            .Include(gm => gm.Group).ThenInclude(g => g.Members)
            .Include(gm => gm.Group).ThenInclude(g => g.Creator)
-           .Where(gm => gm.Group.ApprovalStatus == GroupApprovalStatus.Approved)
+           .Where(gm => gm.Group.ApprovalStatus == GroupApprovalStatus.Approved || gm.Role == GroupRole.Owner)
            .ToListAsync();
             return list.Select(u => new GroupDto(
-                       u.Id.ToString(),
+                       u.Group.Id.ToString(),
                        u.Group.Name,
                         u.Group.Subject,
                         u.Group.Description,
@@ -240,18 +269,28 @@ namespace EduCollab.Infrastructure.Services
            await _context.JoinRequests.AddAsync(req);
             await _context.SaveChangesAsync();
 
-            return await _context.JoinRequests
+            var result = await _context.JoinRequests
+                .Include(jr => jr.Group)
+                .Include(jr => jr.Student)
                 .Where(jr => jr.Id == req.Id)
-                .Select(jr => new JoinRequestDto(
-                    jr.Id.ToString(),
-                    jr.GroupId.ToString(),
-                    jr.Group.Name,
-                    jr.StudentId.ToString(),
-                    jr.Student.DisplayName,
-                    jr.Status,
-                    jr.RequestedAt
-                ))
                 .FirstAsync();
+
+            // Notify the group creator
+            await _notificationService.CreateAndSendAsync(
+                result.Group.CreatorId.ToString(),
+                result.GroupId.ToString(),
+                $"{result.Student.DisplayName} requested to join '{result.Group.Name}'.",
+                NotificationType.NewJoinRequest);
+
+            return new JoinRequestDto(
+                result.Id.ToString(),
+                result.GroupId.ToString(),
+                result.Group.Name,
+                result.StudentId.ToString(),
+                result.Student.DisplayName,
+                result.Status,
+                result.RequestedAt
+            );
         }
 
         public async Task<JoinRequestDto?> ReviewJoinRequestAsync(string requestId, string creatorId, bool accept)
@@ -300,6 +339,17 @@ namespace EduCollab.Infrastructure.Services
             }
 
             await _context.SaveChangesAsync();
+
+            // Notify the student
+            var (notifMessage, notifType) = accept
+                ? ($"Your request to join '{req.Group.Name}' was accepted!", NotificationType.JoinRequestAccepted)
+                : ($"Your request to join '{req.Group.Name}' was rejected.", NotificationType.JoinRequestRejected);
+
+            await _notificationService.CreateAndSendAsync(
+                req.StudentId.ToString(),
+                req.GroupId.ToString(),
+                notifMessage,
+                notifType);
 
             return await _context.JoinRequests.Include(jr=>jr.Group).Include(jr=>jr.Student)
                 .Where(jr => jr.Id == req.Id)

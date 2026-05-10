@@ -60,7 +60,16 @@ builder.Services.AddAuthentication(options =>
         }
     };
 });
-builder.Services.AddCors();
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins("http://localhost:5173", "http://localhost:3000")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
 
 builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IGroupService, GroupService>();
@@ -71,7 +80,10 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 
 
-builder.Services.AddSignalR();
+builder.Services.AddSignalR().AddJsonProtocol(options =>
+{
+    options.PayloadSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+});
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -111,8 +123,10 @@ using (var scope = app.Services.CreateScope())
         if (!await roleManager.RoleExistsAsync(role))
             await roleManager.CreateAsync(new IdentityRole<Guid>(role));
     }
-    var adminEmail = builder.Configuration["AdminSettings:Email"];
-    if (await userManager.FindByEmailAsync(adminEmail) == null)
+    var adminEmail = builder.Configuration["AdminSettings:Email"]!;
+    var adminPassword = builder.Configuration["AdminSettings:Password"]!;
+    var existingAdmin = await userManager.FindByEmailAsync(adminEmail);
+    if (existingAdmin == null)
     {
         var admin = new ApplicationUser
         {
@@ -121,9 +135,15 @@ using (var scope = app.Services.CreateScope())
             DisplayName = "System Admin",
             EmailConfirmed = true
         };
-        var res = await userManager.CreateAsync(admin, builder.Configuration["Jwt:Key"]);
+        var res = await userManager.CreateAsync(admin, adminPassword);
         if (res.Succeeded)
             await userManager.AddToRoleAsync(admin, "Admin");
+    }
+    else
+    {
+        // Reset password to the configured value in case it was seeded incorrectly before
+        var token = await userManager.GeneratePasswordResetTokenAsync(existingAdmin);
+        await userManager.ResetPasswordAsync(existingAdmin, token, adminPassword);
     }
 }
 app.UseMiddleware<ExceptionHandlingMiddleware>();

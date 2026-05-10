@@ -24,6 +24,10 @@ namespace EduCollab.API.Controllers
         [HttpPost("mark-all-read")]
         public async Task<IActionResult> MarkAllRead()
             => Ok(new { success = await _notificationService.MarkAllAsReadAsync(UserId) });
+
+        [HttpPatch("{notifId}/read")]
+        public async Task<IActionResult> MarkOneRead(string notifId)
+            => Ok(new { success = await _notificationService.MarkOneAsReadAsync(notifId, UserId) });
     }
 }
 

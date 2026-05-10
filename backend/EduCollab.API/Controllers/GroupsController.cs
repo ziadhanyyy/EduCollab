@@ -57,6 +57,11 @@ namespace EduCollab.API.Controllers
         public async Task<IActionResult> RequestJoin([FromBody] CreateJoinRequestDto dto)
             => Ok(await _groupService.RequestJoinAsync(UserId, dto));
 
+        [HttpGet("my-join-requests")]
+        [Authorize(Roles = "Student")]
+        public async Task<IActionResult> MyJoinRequests()
+            => Ok(await _groupService.GetMyJoinRequestsAsync(UserId));
+
         [HttpGet("{groupId}/join-requests")]
         [Authorize(Roles = "GroupCreator")]
         public async Task<IActionResult> GetJoinRequests(string groupId)

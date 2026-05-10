@@ -1,14 +1,12 @@
-import { Button } from "./components/ui/button"
-
+import { AuthProvider } from '@/context/AuthContext';
+import AppRouter from '@/routes/AppRouter';
 
 function App() {
-
   return (
-    <div >
-      <h1>Welcome to React</h1>
-      <Button>Click Me</Button>
-      </div>
-  )
+    <AuthProvider>
+      <AppRouter />
+    </AuthProvider>
+  );
 }
 
-export default App
+export default App;

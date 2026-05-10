@@ -74,7 +74,7 @@ namespace EduCollab.Infrastructure.Services
                 )).ToListAsync();
         }
 
-        public async  Task<bool> MarkAllAsReadAsync(string userId)
+        public async Task<bool> MarkAllAsReadAsync(string userId)
         {
             var guid = Guid.Parse(userId);
             await _context.Notifications
@@ -83,26 +83,86 @@ namespace EduCollab.Infrastructure.Services
             return true;
         }
 
-        public async  Task NotifyMaterialUploadedAsync(string groupId, string uploaderName, StudyMaterialDto material)
+        public async Task<bool> MarkOneAsReadAsync(string notifId, string userId)
+        {
+            var nid = Guid.Parse(notifId);
+            var uid = Guid.Parse(userId);
+            await _context.Notifications
+                .Where(n => n.Id == nid && n.UserId == uid)
+                .ExecuteUpdateAsync(s => s.SetProperty(n => n.IsRead, true));
+            return true;
+        }
+
+        public async Task NotifyAdminsAsync(string? groupId, string message, NotificationType type)
+        {
+            // Find all admin user IDs via the Identity role tables
+            var adminRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
+            if (adminRole == null) return;
+
+            var adminIds = await _context.UserRoles
+                .Where(ur => ur.RoleId == adminRole.Id)
+                .Select(ur => ur.UserId)
+                .ToListAsync();
+
+            var gid = !string.IsNullOrEmpty(groupId) ? Guid.Parse(groupId) : (Guid?)null;
+            var saved = new List<(Guid userId, Notification noti)>();
+
+            foreach (var uid in adminIds)
+            {
+                var noti = new Notification
+                {
+                    UserId = uid,
+                    GroupId = gid,
+                    Message = message,
+                    Type = type
+                };
+                _context.Notifications.Add(noti);
+                saved.Add((uid, noti));
+            }
+            await _context.SaveChangesAsync();
+
+            foreach (var (uid, noti) in saved)
+            {
+                var ndto = new NotificationDto(
+                    noti.Id.ToString(), noti.Message, noti.Type,
+                    gid?.ToString(), noti.IsRead, noti.CreatedAt);
+                await _notifHub.Clients.User(uid.ToString()).SendAsync("Notify", ndto);
+            }
+        }
+
+        public async Task NotifyMaterialUploadedAsync(string groupId, string uploaderName, StudyMaterialDto material)
         {
             var gid = Guid.Parse(groupId);
-            var members = await _context.GroupMembers
+            var memberIds = await _context.GroupMembers
                 .Where(g => g.GroupId == gid && g.UserId.ToString() != material.UploaderId)
                 .Select(g => g.UserId)
                 .ToListAsync();
             var msg = $"{uploaderName} uploaded '{material.OriginalFileName}'.";
-            foreach(var  userId in members)
+
+            var saved = new List<(Guid userId, Notification noti)>();
+            foreach (var userId in memberIds)
             {
-                _context.Notifications.Add(new Notification
+                var noti = new Notification
                 {
                     UserId = userId,
-                    GroupId = Guid.Parse(groupId),
+                    GroupId = gid,
                     Message = msg,
                     Type = NotificationType.NewMaterial
-                });
-
+                };
+                _context.Notifications.Add(noti);
+                saved.Add((userId, noti));
             }
             await _context.SaveChangesAsync();
+
+            // Push real-time notification to each member
+            foreach (var (userId, noti) in saved)
+            {
+                var ndto = new NotificationDto(
+                    noti.Id.ToString(), noti.Message, noti.Type,
+                    groupId, noti.IsRead, noti.CreatedAt);
+                await _notifHub.Clients.User(userId.ToString()).SendAsync("Notify", ndto);
+            }
+
             await _groupHub.Clients.Group(groupId).MaterialUploaded(material);
         }
 

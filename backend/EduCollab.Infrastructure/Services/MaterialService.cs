@@ -18,14 +18,15 @@ namespace EduCollab.Infrastructure.Services
 {
     public class MaterialService : IMaterialService
     {
-
         private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _env;
+        private readonly INotificationService _notificationService;
 
-        public MaterialService(AppDbContext context, IWebHostEnvironment env)
+        public MaterialService(AppDbContext context, IWebHostEnvironment env, INotificationService notificationService)
         {
             _context = context;
             _env = env;
+            _notificationService = notificationService;
         }
 
         public async Task<StudyMaterialDto> UploadMaterialAsync(
@@ -84,7 +85,9 @@ namespace EduCollab.Infrastructure.Services
 
             await _context.SaveChangesAsync();
 
-            return await BuildDtoAsync(material.Id);
+            var dto = await BuildDtoAsync(material.Id);
+            await _notificationService.NotifyMaterialUploadedAsync(groupId, dto.UploaderName, dto);
+            return dto;
         }
         public async Task<IEnumerable<StudyMaterialDto>> GetGroupMaterialsAsync(string groupId)
         {
