@@ -1,0 +1,200 @@
+﻿using EduCollab.Application.DTOs;
+using EduCollab.Application.Interfaces;
+using EduCollab.Domain.Entities;
+using EduCollab.Domain.Enums;
+using EduCollab.Infrastructure.Data;
+using EduCollab.Infrastructure.Hubs;
+using EduCollab.Infrastructure.Hubs.Interfaces;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace EduCollab.Infrastructure.Services
+{
+    public class NotificationService : INotificationService
+    {
+        private readonly AppDbContext _context;
+        private readonly IHubContext<NotificationHub> _notifHub;
+        private readonly IHubContext<GroupHub, IGroupHubClient> _groupHub;
+
+        public NotificationService(
+            AppDbContext context,
+            IHubContext<NotificationHub> notifHub,
+            IHubContext<GroupHub, IGroupHubClient> groupHub)
+        {
+            _context = context;
+            _notifHub = notifHub;
+            _groupHub = groupHub;
+        }
+        public async Task CreateAndSendAsync(string userId, string? groupId, string message, NotificationType type)
+        {
+            var uid = Guid.Parse(userId);
+
+            var noti = new Notification
+            {
+                UserId = uid,
+                GroupId =  !string.IsNullOrEmpty(groupId) ? Guid.Parse(groupId) :(Guid?)null,
+                Message = message,
+                Type = type
+            };
+
+            _context.Notifications.Add(noti);
+            await _context.SaveChangesAsync(); 
+      
+            var ndto = new NotificationDto(
+                noti.Id.ToString(),
+                noti.Message,
+                noti.Type,
+                noti.GroupId.HasValue ? noti.GroupId.ToString() : null,
+                noti.IsRead,
+                noti.CreatedAt
+            );
+
+
+            await _notifHub.Clients.User(userId).SendAsync("Notify", ndto);
+
+        }
+
+        public async Task<IEnumerable<NotificationDto>> GetUserNotificationsAsync(string Id)
+        {
+            var uid = Guid.Parse(Id);
+            return await _context.Notifications.Where(u => u.UserId == uid)
+                .OrderByDescending(u => u.CreatedAt)
+                .Select(n => new NotificationDto(
+                    n.Id.ToString(),
+                    n.Message,
+                    n.Type,
+                    n.GroupId.HasValue ? n.GroupId.ToString() : null,
+                    n.IsRead,
+                    n.CreatedAt
+                )).ToListAsync();
+        }
+
+        public async Task<bool> MarkAllAsReadAsync(string userId)
+        {
+            var guid = Guid.Parse(userId);
+            await _context.Notifications
+                .Where(n => n.UserId == guid && !n.IsRead)
+                .ExecuteUpdateAsync(s => s.SetProperty(n => n.IsRead, true));
+            return true;
+        }
+
+        public async Task<bool> MarkOneAsReadAsync(string notifId, string userId)
+        {
+            var nid = Guid.Parse(notifId);
+            var uid = Guid.Parse(userId);
+            await _context.Notifications
+                .Where(n => n.Id == nid && n.UserId == uid)
+                .ExecuteUpdateAsync(s => s.SetProperty(n => n.IsRead, true));
+            return true;
+        }
+
+        public async Task NotifyAdminsAsync(string? groupId, string message, NotificationType type)
+        {
+            // Find all admin user IDs via the Identity role tables
+            var adminRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
+            if (adminRole == null) return;
+
+            var adminIds = await _context.UserRoles
+                .Where(ur => ur.RoleId == adminRole.Id)
+                .Select(ur => ur.UserId)
+                .ToListAsync();
+
+            var gid = !string.IsNullOrEmpty(groupId) ? Guid.Parse(groupId) : (Guid?)null;
+            var saved = new List<(Guid userId, Notification noti)>();
+
+            foreach (var uid in adminIds)
+            {
+                var noti = new Notification
+                {
+                    UserId = uid,
+                    GroupId = gid,
+                    Message = message,
+                    Type = type
+                };
+                _context.Notifications.Add(noti);
+                saved.Add((uid, noti));
+            }
+            await _context.SaveChangesAsync();
+
+            foreach (var (uid, noti) in saved)
+            {
+                var ndto = new NotificationDto(
+                    noti.Id.ToString(), noti.Message, noti.Type,
+                    gid?.ToString(), noti.IsRead, noti.CreatedAt);
+                await _notifHub.Clients.User(uid.ToString()).SendAsync("Notify", ndto);
+            }
+        }
+
+        public async Task NotifyMaterialUploadedAsync(string groupId, string uploaderName, StudyMaterialDto material)
+        {
+            var gid = Guid.Parse(groupId);
+            var memberIds = await _context.GroupMembers
+                .Where(g => g.GroupId == gid && g.UserId.ToString() != material.UploaderId)
+                .Select(g => g.UserId)
+                .ToListAsync();
+            var msg = $"{uploaderName} uploaded '{material.OriginalFileName}'.";
+
+            var saved = new List<(Guid userId, Notification noti)>();
+            foreach (var userId in memberIds)
+            {
+                var noti = new Notification
+                {
+                    UserId = userId,
+                    GroupId = gid,
+                    Message = msg,
+                    Type = NotificationType.NewMaterial
+                };
+                _context.Notifications.Add(noti);
+                saved.Add((userId, noti));
+            }
+            await _context.SaveChangesAsync();
+
+            // Push real-time notification to each member
+            foreach (var (userId, noti) in saved)
+            {
+                var ndto = new NotificationDto(
+                    noti.Id.ToString(), noti.Message, noti.Type,
+                    groupId, noti.IsRead, noti.CreatedAt);
+                await _notifHub.Clients.User(userId.ToString()).SendAsync("Notify", ndto);
+            }
+
+            await _groupHub.Clients.Group(groupId).MaterialUploaded(material);
+        }
+
+        public async Task NotifyMessageAsync(string groupId, MessageDto message)
+        {
+            await _groupHub.Clients.Group(groupId).ReceiveMessage(message);
+        }
+
+        public async Task SendMeetingRemindersAsync(string groupId, MeetingDto meeting)
+        {
+            var gid = Guid.Parse(groupId);
+            var members = await _context.GroupMembers
+                .Where(g => g.GroupId == gid)
+                .Select(g => g.UserId)
+                .ToListAsync();
+            var reminderMsg = meeting.MeetingUrl != null
+           ? $"Meeting '{meeting.Title}' starts in 1 hour. Join: {meeting.MeetingUrl}"
+           : $"Meeting '{meeting.Title}' starts in 1 hour at: {meeting.OfflineAddress}";
+            foreach (var userId in members) {
+
+                _context.Notifications.Add(new Notification
+                {
+                    UserId = userId,
+                    GroupId = Guid.Parse(groupId),
+                    Message = reminderMsg,
+                    Type = NotificationType.MeetingReminder
+                });
+            }
+
+            await _context.SaveChangesAsync();
+
+            await _groupHub.Clients.Group(groupId).MeetingReminder(meeting);
+        }
+    }
+}
