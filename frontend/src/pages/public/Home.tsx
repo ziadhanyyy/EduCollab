@@ -24,7 +24,6 @@ const features = [
 export default function Home() {
   return (
     <div className="space-y-20 py-10">
-      {/* Hero */}
       <section className="text-center space-y-6 max-w-2xl mx-auto">
         <div className="inline-flex items-center gap-2 bg-primary/10 text-primary text-sm font-medium px-4 py-1.5 rounded-full">
           <BookOpen className="h-4 w-4" />
@@ -47,7 +46,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Features */}
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
         {features.map((f) => (
           <Card key={f.title} className="text-center">

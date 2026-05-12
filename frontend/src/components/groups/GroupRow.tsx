@@ -88,7 +88,7 @@ function GroupRow({
                 Edit
               </Link>
             </Button>
-<AlertDialog>
+            <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button
                   size="sm"

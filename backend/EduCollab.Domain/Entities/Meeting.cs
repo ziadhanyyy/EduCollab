@@ -25,6 +25,7 @@ namespace EduCollab.Domain.Entities
         public string? MeetingUrl { get; set; }
         public string? OfflineAddress { get; set; }
         public MeetingStatus Status { get; set; } = MeetingStatus.Scheduled;
+        public bool ReminderSent { get; set; } = false;
         [Required]
         public Guid OrganizerId { get; set; }
         [ForeignKey(nameof(OrganizerId))]

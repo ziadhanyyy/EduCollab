@@ -1,4 +1,5 @@
-﻿using EduCollab.API.Middleware;
+﻿using EduCollab.Infrastructure.BackgroundJobs;
+using EduCollab.API.Middleware;
 using EduCollab.Application.Interfaces;
 using EduCollab.Domain.Entities;
 using EduCollab.Infrastructure.Data;
@@ -25,7 +26,6 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
 })
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
-// ------------------------------------------------------------------------------------------------------
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var key = Encoding.UTF8.GetBytes(jwtSection["Key"]!);
 
@@ -78,6 +78,7 @@ builder.Services.AddScoped<IMeetingService, MeetingService>();
 builder.Services.AddScoped<IMessageService, MessageService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddHostedService<MeetingReminderWorker>();
 
 
 builder.Services.AddSignalR().AddJsonProtocol(options =>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { CreateMeetingRequest, Meeting, MeetingType, StudyMaterial } from '@/types';
+import type { CreateMeetingRequest, Meeting, MeetingType, StudyMaterial, UpdateMeetingRequest } from '@/types';
 import MaterialsTab from './MaterialsTab';
 import MeetingsTab from './MeetingsTab';
 
@@ -16,6 +16,8 @@ interface Props {
   meetings: Meeting[];
   meetingsLoading: boolean;
   createMeeting: (payload: CreateMeetingRequest) => Promise<Meeting>;
+  updateMeeting: (id: string, payload: UpdateMeetingRequest) => Promise<Meeting>;
+  removeMeeting: (id: string) => Promise<void>;
 }
 
 export default function GroupSpaceSidebar(props: Props) {
@@ -60,6 +62,8 @@ export default function GroupSpaceSidebar(props: Props) {
           meetingType={props.meetingType}
           isCreator={props.isCreator}
           createMeeting={props.createMeeting}
+          updateMeeting={props.updateMeeting}
+          removeMeeting={props.removeMeeting}
         />
       )}
     </div>

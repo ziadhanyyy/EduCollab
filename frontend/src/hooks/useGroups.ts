@@ -3,14 +3,11 @@ import api from '@/lib/api';
 import type { Group, GroupSearchParams } from '@/types';
 import { extractErrorMessage } from '@/utils/helpers';
 
-// ─── Browse / search approved groups ─────────────────────────────────────────
-
 export function useGroups(params?: GroupSearchParams) {
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: JSON.stringify(params) is used intentionally for deep comparison of params object
   const fetchGroups = useCallback(async () => {
     setLoading(true);
     setError(null);

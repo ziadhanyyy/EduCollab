@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { CreateMeetingRequest, Meeting, MeetingType } from '@/types';
+import type { CreateMeetingRequest, Meeting, MeetingType, UpdateMeetingRequest } from '@/types';
 import { extractErrorMessage } from '@/utils/helpers';
 import MeetingCard from './MeetingCard';
 
@@ -17,6 +17,8 @@ interface Props {
   meetingType: MeetingType;
   isCreator: boolean;
   createMeeting: (payload: CreateMeetingRequest) => Promise<Meeting>;
+  updateMeeting: (id: string, payload: UpdateMeetingRequest) => Promise<Meeting>;
+  removeMeeting: (id: string) => Promise<void>;
 }
 
 export default function MeetingsTab({
@@ -26,6 +28,8 @@ export default function MeetingsTab({
   meetingType,
   isCreator,
   createMeeting,
+  updateMeeting,
+  removeMeeting,
 }: Props) {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<Partial<CreateMeetingRequest>>({
@@ -73,6 +77,15 @@ export default function MeetingsTab({
               placeholder="Session title"
               value={form.title ?? ''}
               onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Description</Label>
+            <Input
+              className="h-8 text-xs"
+              placeholder="Optional details"
+              value={form.description ?? ''}
+              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
             />
           </div>
           <div className="space-y-1.5">
@@ -147,7 +160,15 @@ export default function MeetingsTab({
             <p>No meetings scheduled</p>
           </div>
         ) : (
-          meetings.map((m) => <MeetingCard key={m.id} meeting={m} />)
+          meetings.map((m) => (
+            <MeetingCard
+              key={m.id}
+              meeting={m}
+              isCreator={isCreator}
+              onUpdate={updateMeeting}
+              onDelete={removeMeeting}
+            />
+          ))
         )}
       </div>
     </div>

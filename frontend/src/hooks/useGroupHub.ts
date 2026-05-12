@@ -1,7 +1,8 @@
 import * as signalR from '@microsoft/signalr';
 import { useEffect, useRef } from 'react';
+import { toast } from 'sonner';
 import { TOKEN_KEY } from '@/lib/api';
-import type { Message, StudyMaterial } from '@/types';
+import type { Meeting, Message, StudyMaterial } from '@/types';
 
 const HUB_URL = `${(import.meta.env.VITE_SIGNALR_BASE_URL ?? 'http://localhost:5184').replace(
   /\/+$/,
@@ -44,6 +45,12 @@ export function useGroupHub({ groupId, onMessage, onMaterialUploaded }: UseGroup
 
     connection.on('MaterialUploaded', (material: StudyMaterial) => {
       onMaterialRef.current?.(material);
+    });
+
+    connection.on('MeetingReminder', (meeting: Meeting) => {
+      toast.info(`Reminder: "${meeting.title}" starts in ~1 hour`, {
+        duration: 10000,
+      });
     });
 
     connection

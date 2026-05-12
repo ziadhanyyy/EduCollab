@@ -37,7 +37,7 @@ export default function GroupSpace() {
     searchByTag,
   } = useMaterials(id ?? '');
 
-  const { meetings, loading: meetingsLoading, create: createMeeting } = useMeetings(id ?? '');
+  const { meetings, loading: meetingsLoading, create: createMeeting, update: updateMeeting, remove: removeMeeting } = useMeetings(id ?? '');
 
   const handleNewMessage = useCallback((msg: Message) => appendMessage(msg), [appendMessage]);
   const handleMaterialUploaded = useCallback(() => refetchMaterials(), [refetchMaterials]);
@@ -132,6 +132,8 @@ export default function GroupSpace() {
         meetings={meetings}
         meetingsLoading={meetingsLoading}
         createMeeting={createMeeting}
+        updateMeeting={updateMeeting}
+        removeMeeting={removeMeeting}
       />
     </div>
   );
