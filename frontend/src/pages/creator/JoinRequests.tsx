@@ -1,86 +1,22 @@
-import { useState, useCallback, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Check, X, Users, Loader2, Clock } from 'lucide-react';
+import { ArrowLeft, Users } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
+import RequestCard from '@/components/groups/RequestCard';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGroup } from '@/hooks/useGroups';
-import { extractErrorMessage, formatDate, timeAgo } from '@/utils/helpers';
 import api from '@/lib/api';
 import type { JoinRequest } from '@/types';
-
-function RequestCard({
-  req,
-  onReview,
-}: {
-  req: JoinRequest;
-  onReview: (id: string, accept: boolean) => Promise<void>;
-}) {
-  const [accepting, setAccepting] = useState(false);
-  const [rejecting, setRejecting] = useState(false);
-
-  async function handle(accept: boolean) {
-    accept ? setAccepting(true) : setRejecting(true);
-    try {
-      await onReview(req.id, accept);
-    } finally {
-      setAccepting(false);
-      setRejecting(false);
-    }
-  }
-
-  const busy = accepting || rejecting;
-
-  return (
-    <Card>
-      <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-3 min-w-0">
-          <span className="h-10 w-10 rounded-full bg-primary/10 text-primary text-sm font-bold flex items-center justify-center uppercase shrink-0 select-none">
-            {req.studentName.charAt(0)}
-          </span>
-          <div className="min-w-0">
-            <p className="font-semibold text-sm">{req.studentName}</p>
-            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-              <Clock className="h-3 w-3" />
-              Requested {timeAgo(req.requestedAt)} · {formatDate(req.requestedAt)}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex gap-2 shrink-0">
-          <Button
-            size="sm"
-            variant="outline"
-            className="text-destructive border-destructive/40 hover:bg-destructive/10"
-            onClick={() => handle(false)}
-            disabled={busy}
-          >
-            {rejecting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <X className="h-3.5 w-3.5" />}
-            <span className="ml-1.5">Reject</span>
-          </Button>
-          <Button
-            size="sm"
-            className="bg-emerald-500 hover:bg-emerald-600 text-white"
-            onClick={() => handle(true)}
-            disabled={busy}
-          >
-            {accepting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
-            <span className="ml-1.5">Accept</span>
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
+import { extractErrorMessage } from '@/utils/helpers';
 
 export default function JoinRequests() {
   const { id } = useParams<{ id: string }>();
   const { group } = useGroup(id ?? '');
 
   const [requests, setRequests] = useState<JoinRequest[]>([]);
-  const [loading, setLoading]   = useState(true);
-  const [error, setError]       = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchRequests = useCallback(async () => {
     if (!id) return;
@@ -96,7 +32,9 @@ export default function JoinRequests() {
     }
   }, [id]);
 
-  useEffect(() => { fetchRequests(); }, [fetchRequests]);
+  useEffect(() => {
+    fetchRequests();
+  }, [fetchRequests]);
 
   const handleReview = useCallback(async (requestId: string, accept: boolean) => {
     try {
@@ -111,7 +49,6 @@ export default function JoinRequests() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-5">
-      {/* Header */}
       <div>
         <Link
           to="/creator/groups"
@@ -175,4 +112,3 @@ export default function JoinRequests() {
     </div>
   );
 }
-

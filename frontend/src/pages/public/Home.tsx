@@ -1,5 +1,5 @@
+import { Bell, BookOpen, FileText, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Users, FileText, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -31,12 +31,11 @@ export default function Home() {
           Collaborative Learning Platform
         </div>
         <h1 className="text-5xl font-bold tracking-tight leading-tight">
-          Learn better,{' '}
-          <span className="text-primary">together.</span>
+          Learn better, <span className="text-primary">together.</span>
         </h1>
         <p className="text-lg text-muted-foreground">
-          EduCollab connects students with study groups, shared materials, and real-time
-          discussions — all in one place.
+          EduCollab connects students with study groups, shared materials, and real-time discussions
+          — all in one place.
         </p>
         <div className="flex items-center justify-center gap-4">
           <Button size="lg" asChild>
@@ -63,4 +62,3 @@ export default function Home() {
     </div>
   );
 }
-

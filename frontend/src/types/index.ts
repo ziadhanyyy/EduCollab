@@ -9,7 +9,6 @@ export interface User {
   role: UserRole;
 }
 
-
 export type MeetingType = 0 | 1;
 
 export type GroupApprovalStatus = 0 | 1 | 2;
@@ -52,7 +51,6 @@ export interface UpdateGroupRequest {
   offlineAddress?: string;
   meetingSchedule?: string;
 }
-
 
 export type JoinRequestStatus = 0 | 1 | 2;
 
@@ -103,7 +101,6 @@ export interface UpdateMeetingRequest {
   status?: MeetingStatus;
 }
 
-
 export interface Message {
   id: string;
   groupId: string;
@@ -117,7 +114,6 @@ export interface SendMessageRequest {
   groupId: string;
   content: string;
 }
-
 
 export interface StudyMaterial {
   id: string;
@@ -142,14 +138,12 @@ export interface Notification {
   createdAt: string;
 }
 
-
 export interface PendingCreator {
   id: string;
   email: string;
   displayName: string;
   createdAt: string;
 }
-
 
 export interface LoginRequest {
   email: string;
@@ -180,7 +174,6 @@ export interface RegisterResponse {
 export interface ApiError {
   error: string;
 }
-
 
 export interface GroupSearchParams {
   subject?: string;

@@ -1,7 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import api from '@/lib/api';
-import type { Meeting, CreateMeetingRequest, UpdateMeetingRequest } from '@/types';
+import type { CreateMeetingRequest, Meeting, UpdateMeetingRequest } from '@/types';
 import { extractErrorMessage } from '@/utils/helpers';
+
+function toUtcIso(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return undefined;
+  return d.toISOString();
+}
 
 export function useMeetings(groupId: string) {
   const [meetings, setMeetings] = useState<Meeting[]>([]);
@@ -22,19 +29,30 @@ export function useMeetings(groupId: string) {
     }
   }, [groupId]);
 
-  useEffect(() => { fetch(); }, [fetch]);
+  useEffect(() => {
+    fetch();
+  }, [fetch]);
 
   const create = useCallback(async (payload: CreateMeetingRequest): Promise<Meeting> => {
-    const { data } = await api.post<Meeting>('/meetings', payload);
+    const { data } = await api.post<Meeting>('/meetings', {
+      ...payload,
+      scheduledAt: toUtcIso(payload.scheduledAt),
+    });
     setMeetings((prev) => [data, ...prev]);
     return data;
   }, []);
 
-  const update = useCallback(async (meetingId: string, payload: UpdateMeetingRequest): Promise<Meeting> => {
-    const { data } = await api.put<Meeting>(`/meetings/${meetingId}`, payload);
-    setMeetings((prev) => prev.map((m) => (m.id === meetingId ? data : m)));
-    return data;
-  }, []);
+  const update = useCallback(
+    async (meetingId: string, payload: UpdateMeetingRequest): Promise<Meeting> => {
+      const { data } = await api.put<Meeting>(`/meetings/${meetingId}`, {
+        ...payload,
+        scheduledAt: toUtcIso(payload.scheduledAt),
+      });
+      setMeetings((prev) => prev.map((m) => (m.id === meetingId ? data : m)));
+      return data;
+    },
+    [],
+  );
 
   const remove = useCallback(async (meetingId: string) => {
     await api.delete(`/meetings/${meetingId}`);

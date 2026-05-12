@@ -1,34 +1,12 @@
+import { CheckCircle, Clock, Loader2, MapPin, Monitor, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Users, Monitor, MapPin, Clock, CheckCircle, Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import type { Group } from '@/types';
-import { formatDateTime } from '@/utils/helpers';
+import { formatDateTime, subjectColor } from '@/utils/helpers';
 
-// ─── Subject badge colours ────────────────────────────────────────────────────
-// Each subject gets a consistent colour derived from its text
-
-const SUBJECT_COLORS: Record<string, string> = {
-  chemistry:       'bg-sky-100 text-sky-700',
-  mathematics:     'bg-violet-100 text-violet-700',
-  'computer science': 'bg-indigo-100 text-indigo-700',
-  languages:       'bg-teal-100 text-teal-700',
-  physics:         'bg-orange-100 text-orange-700',
-  biology:         'bg-green-100 text-green-700',
-};
-
-function subjectColor(subject: string) {
-  return SUBJECT_COLORS[subject.toLowerCase()] ?? 'bg-primary/10 text-primary';
-}
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-type MembershipStatus =
-  | 'member'       // already a member
-  | 'pending'      // join request sent, awaiting response
-  | 'full'         // group at capacity
-  | 'none';        // can request to join
+type MembershipStatus = 'member' | 'pending' | 'full' | 'none';
 
 interface GroupCardProps {
   group: Group;
@@ -36,8 +14,6 @@ interface GroupCardProps {
   onJoin?: (groupId: string) => void;
   joining?: boolean;
 }
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export default function GroupCard({
   group,
@@ -72,7 +48,12 @@ export default function GroupCard({
     }
     if (membershipStatus === 'pending') {
       return (
-        <Button variant="outline" className="w-full text-amber-600 border-amber-300 bg-amber-50 hover:bg-amber-100" size="sm" disabled>
+        <Button
+          variant="outline"
+          className="w-full text-amber-600 border-amber-300 bg-amber-50 hover:bg-amber-100"
+          size="sm"
+          disabled
+        >
           <Clock className="h-3.5 w-3.5 mr-1.5" />
           Request Pending
         </Button>
@@ -102,7 +83,9 @@ export default function GroupCard({
     <Card className="flex flex-col overflow-hidden hover:shadow-md transition-shadow">
       <CardContent className="flex flex-col flex-1 p-4 gap-3">
         <div className="flex items-center justify-between">
-          <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${subjectColor(group.subject)}`}>
+          <span
+            className={`text-xs font-medium px-2 py-0.5 rounded-full ${subjectColor(group.subject)}`}
+          >
             {group.subject}
           </span>
           {statusBadge}
@@ -142,7 +125,6 @@ export default function GroupCard({
           </div>
         </div>
 
-        {/* Meeting details */}
         <div className="space-y-1 text-xs text-muted-foreground">
           <div className="flex items-center gap-1.5">
             {group.meetingType === 0 ? (
@@ -152,8 +134,8 @@ export default function GroupCard({
             )}
             <span className="truncate">
               {group.meetingType === 0
-                ? group.onlineLink ?? 'Virtual'
-                : group.offlineAddress ?? 'Offline'}
+                ? (group.onlineLink ?? 'Virtual')
+                : (group.offlineAddress ?? 'Offline')}
             </span>
           </div>
           {group.meetingSchedule && (
@@ -164,7 +146,6 @@ export default function GroupCard({
           )}
         </div>
 
-        {/* Action */}
         <div className="pt-1">{actionButton}</div>
       </CardContent>
     </Card>

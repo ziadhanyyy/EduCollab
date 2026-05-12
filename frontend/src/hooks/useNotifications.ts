@@ -29,15 +29,11 @@ export function useNotifications() {
     try {
       await api.post('/notifications/mark-all-read');
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-    } catch {
-    }
+    } catch {}
   }, []);
 
   const markOneRead = useCallback((id: string) => {
-    // Optimistic update — fire-and-forget the API call
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
-    );
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
     api.patch(`/notifications/${id}/read`).catch(() => {});
   }, []);
 
@@ -50,5 +46,14 @@ export function useNotifications() {
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
-  return { notifications, loading, error, unreadCount, markAllRead, markOneRead, appendNotification, refetch: fetchNotifications };
+  return {
+    notifications,
+    loading,
+    error,
+    unreadCount,
+    markAllRead,
+    markOneRead,
+    appendNotification,
+    refetch: fetchNotifications,
+  };
 }

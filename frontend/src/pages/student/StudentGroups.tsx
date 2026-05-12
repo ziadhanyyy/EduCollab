@@ -1,9 +1,9 @@
-import { useState, useMemo } from 'react';
+import { BookOpen, Search, Users } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, BookOpen, Users } from 'lucide-react';
+import GroupCard from '@/components/groups/GroupCard';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import GroupCard from '@/components/groups/GroupCard';
 import { useMyGroups } from '@/hooks/useGroups';
 
 function CardSkeleton() {
@@ -76,7 +76,7 @@ export default function StudentGroups() {
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
-            <CardSkeleton key={i} />
+            <CardSkeleton key={`skeleton-${i}`} />
           ))}
         </div>
       ) : groups.length === 0 ? (
@@ -97,6 +97,7 @@ export default function StudentGroups() {
         <div className="text-center py-16">
           <p className="text-muted-foreground text-sm">No groups match your search.</p>
           <button
+            type="button"
             className="text-primary text-sm mt-1.5 hover:underline"
             onClick={() => setSearch('')}
           >
@@ -111,11 +112,7 @@ export default function StudentGroups() {
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((g) => (
-              <GroupCard
-                key={g.id}
-                group={g}
-                membershipStatus="member"
-              />
+              <GroupCard key={g.id} group={g} membershipStatus="member" />
             ))}
           </div>
         </>

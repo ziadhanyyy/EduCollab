@@ -1,13 +1,13 @@
-import { useState } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Skeleton } from '@/components/ui/skeleton';
 import GroupForm from '@/components/groups/GroupForm';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useGroup } from '@/hooks/useGroups';
-import { extractErrorMessage } from '@/utils/helpers';
 import api from '@/lib/api';
-import type { UpdateGroupRequest, Group } from '@/types';
+import type { Group, UpdateGroupRequest } from '@/types';
+import { extractErrorMessage } from '@/utils/helpers';
 
 export default function EditGroup() {
   const { id } = useParams<{ id: string }>();
@@ -57,7 +57,9 @@ export default function EditGroup() {
           Back to My Groups
         </Link>
         <h1 className="text-2xl font-bold">Edit Group</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Update the details for "{group.name}".</p>
+        <p className="text-sm text-muted-foreground mt-0.5">
+          Update the details for "{group.name}".
+        </p>
       </div>
 
       <GroupForm
@@ -69,4 +71,3 @@ export default function EditGroup() {
     </div>
   );
 }
-

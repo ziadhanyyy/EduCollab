@@ -1,34 +1,12 @@
-import { useEffect, useState, type FormEvent } from 'react';
-import { Loader2, Monitor, MapPin } from 'lucide-react';
+import { Loader2, MapPin, Monitor } from 'lucide-react';
+import { type FormEvent, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent } from '@/components/ui/card';
-import type { Group, CreateGroupRequest, UpdateGroupRequest } from '@/types';
-
-type FormValues = {
-  name: string;
-  subject: string;
-  description: string;
-  maxMembers: string;
-  meetingType: '0' | '1';
-  onlineLink: string;
-  offlineAddress: string;
-  meetingSchedule: string;
-};
-
-type FormErrors = Partial<Record<keyof FormValues, string>>;
-
-function validate(v: FormValues): FormErrors {
-  const e: FormErrors = {};
-  if (!v.name.trim())    e.name    = 'Group name is required.';
-  if (!v.subject.trim()) e.subject = 'Subject is required.';
-  const max = Number(v.maxMembers);
-  if (v.maxMembers && (isNaN(max) || max < 2)) e.maxMembers = 'Must be at least 2.';
-  if (v.meetingType === '0' && !v.onlineLink.trim())   e.onlineLink    = 'Online link is required for online groups.';
-  if (v.meetingType === '1' && !v.offlineAddress.trim()) e.offlineAddress = 'Address is required for offline groups.';
-  return e;
-}
+import type { CreateGroupRequest, Group, UpdateGroupRequest } from '@/types';
+import type { GroupFormErrors, GroupFormValues } from '@/types/groups/group';
+import { GroupValidate } from '@/utils/validator';
 
 interface GroupFormProps {
   initial?: Group;
@@ -38,61 +16,73 @@ interface GroupFormProps {
 }
 
 export default function GroupForm({ initial, onSubmit, submitLabel, loading }: GroupFormProps) {
-  const [form, setForm] = useState<FormValues>({
-    name:            initial?.name            ?? '',
-    subject:         initial?.subject         ?? '',
-    description:     initial?.description     ?? '',
-    maxMembers:      initial?.maxMembers?.toString() ?? '50',
-    meetingType:     initial?.meetingType === 1 ? '1' : '0',
-    onlineLink:      initial?.onlineLink      ?? '',
-    offlineAddress:  initial?.offlineAddress  ?? '',
+  const [form, setForm] = useState<GroupFormValues>({
+    name: initial?.name ?? '',
+    subject: initial?.subject ?? '',
+    description: initial?.description ?? '',
+    maxMembers: initial?.maxMembers?.toString() ?? '50',
+    meetingType: initial?.meetingType === 1 ? '1' : '0',
+    onlineLink: initial?.onlineLink ?? '',
+    offlineAddress: initial?.offlineAddress ?? '',
     meetingSchedule: initial?.meetingSchedule
       ? new Date(initial.meetingSchedule).toISOString().slice(0, 16)
       : '',
   });
-  const [errors, setErrors] = useState<FormErrors>({});
+  const [errors, setErrors] = useState<GroupFormErrors>({});
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally depends on initial?.id only to reset form when group changes
   useEffect(() => {
     if (!initial) return;
     setForm({
-      name:            initial.name            ?? '',
-      subject:         initial.subject         ?? '',
-      description:     initial.description     ?? '',
-      maxMembers:      initial.maxMembers?.toString() ?? '50',
-      meetingType:     initial.meetingType === 1 ? '1' : '0',
-      onlineLink:      initial.onlineLink      ?? '',
-      offlineAddress:  initial.offlineAddress  ?? '',
+      name: initial.name ?? '',
+      subject: initial.subject ?? '',
+      description: initial.description ?? '',
+      maxMembers: initial.maxMembers?.toString() ?? '50',
+      meetingType: initial.meetingType === 1 ? '1' : '0',
+      onlineLink: initial.onlineLink ?? '',
+      offlineAddress: initial.offlineAddress ?? '',
       meetingSchedule: initial.meetingSchedule
         ? new Date(initial.meetingSchedule).toISOString().slice(0, 16)
         : '',
     });
-  }, [initial?.id]); 
+  }, [initial?.id]);
 
-  function set(field: keyof FormValues, value: string) {
+  function set(field: keyof GroupFormValues, value: string) {
     setForm((p) => ({ ...p, [field]: value }));
     setErrors((p) => ({ ...p, [field]: undefined }));
   }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    const errs = validate(form);
-    if (Object.keys(errs).length) { setErrors(errs); return; }
+    const errs = GroupValidate(form);
+    if (Object.keys(errs).length) {
+      setErrors(errs);
+      return;
+    }
 
     const payload: CreateGroupRequest = {
-      name:    form.name.trim(),
+      name: form.name.trim(),
       subject: form.subject.trim(),
       ...(form.description.trim() && { description: form.description.trim() }),
-      maxMembers:  Number(form.maxMembers) || 50,
+      maxMembers: Number(form.maxMembers) || 50,
       meetingType: Number(form.meetingType) as 0 | 1,
       ...(form.meetingType === '0' && { onlineLink: form.onlineLink.trim() }),
-      ...(form.meetingType === '1' && { offlineAddress: form.offlineAddress.trim() }),
-      ...(form.meetingSchedule && { meetingSchedule: new Date(form.meetingSchedule).toISOString() }),
+      ...(form.meetingType === '1' && {
+        offlineAddress: form.offlineAddress.trim(),
+      }),
+      ...(form.meetingSchedule && {
+        meetingSchedule: new Date(form.meetingSchedule).toISOString(),
+      }),
     };
 
     await onSubmit(payload);
   }
 
-  const field = (id: keyof FormValues, label: string, props: React.InputHTMLAttributes<HTMLInputElement>) => (
+  const field = (
+    id: keyof GroupFormValues,
+    label: string,
+    props: React.InputHTMLAttributes<HTMLInputElement>,
+  ) => (
     <div className="space-y-1.5">
       <Label htmlFor={id}>{label}</Label>
       <Input
@@ -110,9 +100,13 @@ export default function GroupForm({ initial, onSubmit, submitLabel, loading }: G
     <form onSubmit={handleSubmit} noValidate className="space-y-5">
       <Card>
         <CardContent className="p-5 space-y-4">
-          <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Basic Info</h2>
+          <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
+            Basic Info
+          </h2>
 
-          {field('name',    'Group name *',{ placeholder: 'e.g. Advanced Organic Chemistry' })}
+          {field('name', 'Group name *', {
+            placeholder: 'e.g. Advanced Organic Chemistry',
+          })}
           {field('subject', 'Subject *', { placeholder: 'e.g. Chemistry' })}
 
           <div className="space-y-1.5">
@@ -127,15 +121,20 @@ export default function GroupForm({ initial, onSubmit, submitLabel, loading }: G
             />
           </div>
 
-          {field('maxMembers', 'Max members', { type: 'number', min: 2, placeholder: '50' })}
+          {field('maxMembers', 'Max members', {
+            type: 'number',
+            min: 2,
+            placeholder: '50',
+          })}
         </CardContent>
       </Card>
 
       <Card>
         <CardContent className="p-5 space-y-4">
-          <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Meeting Details</h2>
+          <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
+            Meeting Details
+          </h2>
 
-          {/* Meeting type toggle */}
           <div className="space-y-1.5">
             <Label>Meeting type</Label>
             <div className="grid grid-cols-2 gap-3">
@@ -150,9 +149,7 @@ export default function GroupForm({ initial, onSubmit, submitLabel, loading }: G
                       : 'border-border text-muted-foreground hover:border-primary/40'
                   }`}
                 >
-                  {type === '0'
-                    ? <Monitor className="h-4 w-4" />
-                    : <MapPin className="h-4 w-4" />}
+                  {type === '0' ? <Monitor className="h-4 w-4" /> : <MapPin className="h-4 w-4" />}
                   {type === '0' ? 'Online' : 'Offline'}
                 </button>
               ))}
@@ -183,11 +180,15 @@ export default function GroupForm({ initial, onSubmit, submitLabel, loading }: G
                 placeholder="Library Room 302"
                 className={errors.offlineAddress ? 'border-destructive' : ''}
               />
-              {errors.offlineAddress && <p className="text-xs text-destructive">{errors.offlineAddress}</p>}
+              {errors.offlineAddress && (
+                <p className="text-xs text-destructive">{errors.offlineAddress}</p>
+              )}
             </div>
           )}
 
-          {field('meetingSchedule', 'Meeting schedule (optional)', { type: 'datetime-local' })}
+          {field('meetingSchedule', 'Meeting schedule (optional)', {
+            type: 'datetime-local',
+          })}
         </CardContent>
       </Card>
 

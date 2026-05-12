@@ -1,34 +1,10 @@
+import { BookOpen, CheckCircle, MapPin, Monitor, Search } from 'lucide-react';
 import { useState } from 'react';
-import { BookOpen, Search, CheckCircle, Monitor, MapPin } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import AdminGroupGridSkeleton from '@/components/admin/AdminGroupGridSkeleton';
 import GroupApprovalCard from '@/components/admin/GroupApprovalCard';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { usePendingGroups } from '@/hooks/useAdmin';
-
-function GridSkeleton() {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-      {[1, 2, 3].map((i) => (
-        <Card key={i}>
-          <CardContent className="p-4 space-y-3">
-            <div className="flex justify-between">
-              <Skeleton className="h-5 w-24 rounded-full" />
-              <Skeleton className="h-4 w-20" />
-            </div>
-            <Skeleton className="h-5 w-3/4" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-2/3" />
-            <div className="flex gap-2 pt-1">
-              <Skeleton className="h-8 flex-1" />
-              <Skeleton className="h-8 flex-1" />
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
-}
 
 type MeetingFilter = 'all' | 'online' | 'offline';
 
@@ -62,7 +38,6 @@ export default function AdminGroups() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
@@ -80,7 +55,6 @@ export default function AdminGroups() {
         )}
       </div>
 
-      {/* Search + type filter */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-52 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -92,26 +66,36 @@ export default function AdminGroups() {
           />
         </div>
         <div className="flex gap-2">
-          <button className={filterBtnCls(meetingFilter === 'all')} onClick={() => setMeetingFilter('all')}>
+          <button
+            type="button"
+            className={filterBtnCls(meetingFilter === 'all')}
+            onClick={() => setMeetingFilter('all')}
+          >
             All
           </button>
-          <button className={filterBtnCls(meetingFilter === 'online')} onClick={() => setMeetingFilter('online')}>
+          <button
+            type="button"
+            className={filterBtnCls(meetingFilter === 'online')}
+            onClick={() => setMeetingFilter('online')}
+          >
             <Monitor className="h-3.5 w-3.5" />
             Online
           </button>
-          <button className={filterBtnCls(meetingFilter === 'offline')} onClick={() => setMeetingFilter('offline')}>
+          <button
+            type="button"
+            className={filterBtnCls(meetingFilter === 'offline')}
+            onClick={() => setMeetingFilter('offline')}
+          >
             <MapPin className="h-3.5 w-3.5" />
             Offline
           </button>
         </div>
       </div>
 
-      {/* Error */}
       {error && <p className="text-sm text-destructive">{error}</p>}
 
-      {/* Grid */}
       {loading ? (
-        <GridSkeleton />
+        <AdminGroupGridSkeleton />
       ) : filtered.length === 0 ? (
         <Card>
           <CardContent className="py-16 text-center space-y-2">
@@ -131,16 +115,10 @@ export default function AdminGroups() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filtered.map((g) => (
-            <GroupApprovalCard
-              key={g.id}
-              group={g}
-              onApprove={approve}
-              onReject={reject}
-            />
+            <GroupApprovalCard key={g.id} group={g} onApprove={approve} onReject={reject} />
           ))}
         </div>
       )}
     </div>
   );
 }
-

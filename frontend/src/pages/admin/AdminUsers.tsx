@@ -1,9 +1,9 @@
+import { CheckCircle, Search, Users } from 'lucide-react';
 import { useState } from 'react';
-import { Users, Search, CheckCircle } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
 import UserApprovalCard from '@/components/admin/UserApprovalCard';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import { usePendingCreators } from '@/hooks/useAdmin';
 
 function ListSkeleton() {
@@ -37,7 +37,7 @@ export default function AdminUsers() {
   const filtered = creators.filter(
     (c) =>
       c.displayName.toLowerCase().includes(search.toLowerCase()) ||
-      c.email.toLowerCase().includes(search.toLowerCase())
+      c.email.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
@@ -60,7 +60,6 @@ export default function AdminUsers() {
         )}
       </div>
 
-      {/* Search */}
       <div className="relative max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
@@ -71,10 +70,8 @@ export default function AdminUsers() {
         />
       </div>
 
-      {/* Error */}
       {error && <p className="text-sm text-destructive">{error}</p>}
 
-      {/* List */}
       {loading ? (
         <ListSkeleton />
       ) : filtered.length === 0 ? (
@@ -94,16 +91,10 @@ export default function AdminUsers() {
       ) : (
         <div className="space-y-3">
           {filtered.map((c) => (
-            <UserApprovalCard
-              key={c.id}
-              creator={c}
-              onApprove={approve}
-              onReject={reject}
-            />
+            <UserApprovalCard key={c.id} creator={c} onApprove={approve} onReject={reject} />
           ))}
         </div>
       )}
     </div>
   );
 }
-

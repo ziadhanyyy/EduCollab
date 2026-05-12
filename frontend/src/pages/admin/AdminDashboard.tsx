@@ -1,73 +1,13 @@
+import { ArrowRight, BookOpen, CheckCircle, Clock, ShieldCheck, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Users, BookOpen, CheckCircle, Clock, ArrowRight, ShieldCheck } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { usePendingCreators, usePendingGroups } from '@/hooks/useAdmin';
-import UserApprovalCard from '@/components/admin/UserApprovalCard';
 import GroupApprovalCard from '@/components/admin/GroupApprovalCard';
+import ListSkeleton from '@/components/admin/ListSkeleton';
+import StatCard from '@/components/admin/StatCard';
+import UserApprovalCard from '@/components/admin/UserApprovalCard';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { usePendingCreators, usePendingGroups } from '@/hooks/useAdmin';
 
-// ─── Stat card ────────────────────────────────────────────────────────────────
-interface StatCardProps {
-  title: string;
-  value: number | undefined;
-  icon: React.ReactNode;
-  href: string;
-  loading: boolean;
-  color: string;
-}
-
-function StatCard({ title, value, icon, href, loading, color }: StatCardProps) {
-  return (
-    <Card>
-      <CardContent className="p-5 flex items-center gap-4">
-        <span className={`h-11 w-11 rounded-xl flex items-center justify-center shrink-0 ${color}`}>
-          {icon}
-        </span>
-        <div className="flex-1 min-w-0">
-          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{title}</p>
-          {loading ? (
-            <Skeleton className="h-7 w-10 mt-1" />
-          ) : (
-            <p className="text-2xl font-bold">{value ?? 0}</p>
-          )}
-        </div>
-        <Button variant="ghost" size="icon" asChild className="shrink-0">
-          <Link to={href}>
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </Button>
-      </CardContent>
-    </Card>
-  );
-}
-
-// ─── Section skeleton ─────────────────────────────────────────────────────────
-function ListSkeleton() {
-  return (
-    <div className="space-y-3">
-      {[1, 2].map((i) => (
-        <Card key={i}>
-          <CardContent className="p-4 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3 flex-1">
-              <Skeleton className="h-10 w-10 rounded-full" />
-              <div className="space-y-1.5 flex-1">
-                <Skeleton className="h-4 w-40" />
-                <Skeleton className="h-3 w-52" />
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Skeleton className="h-8 w-20" />
-              <Skeleton className="h-8 w-20" />
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  );
-}
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
 export default function AdminDashboard() {
   const {
     creators,
@@ -87,7 +27,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
       <div className="flex items-center gap-3">
         <span className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
           <ShieldCheck className="h-5 w-5" />
@@ -102,7 +41,6 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Stat cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Pending Creators"
@@ -138,9 +76,7 @@ export default function AdminDashboard() {
         />
       </div>
 
-      {/* Two-column: pending creators + pending groups */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-        {/* Pending Creators */}
         <section className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold flex items-center gap-2">
@@ -153,7 +89,10 @@ export default function AdminDashboard() {
               )}
             </h2>
             <Button variant="ghost" size="sm" asChild>
-              <Link to="/admin/users" className="text-xs text-muted-foreground hover:text-foreground">
+              <Link
+                to="/admin/users"
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
                 View all <ArrowRight className="h-3.5 w-3.5 ml-1" />
               </Link>
             </Button>
@@ -187,7 +126,6 @@ export default function AdminDashboard() {
           )}
         </section>
 
-        {/* Pending Groups */}
         <section className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold flex items-center gap-2">
@@ -200,7 +138,10 @@ export default function AdminDashboard() {
               )}
             </h2>
             <Button variant="ghost" size="sm" asChild>
-              <Link to="/admin/groups" className="text-xs text-muted-foreground hover:text-foreground">
+              <Link
+                to="/admin/groups"
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
                 View all <ArrowRight className="h-3.5 w-3.5 ml-1" />
               </Link>
             </Button>
@@ -237,4 +178,3 @@ export default function AdminDashboard() {
     </div>
   );
 }
-

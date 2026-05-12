@@ -60,7 +60,7 @@ namespace EduCollab.Infrastructure.Services
                 GroupId = gid,
                 Title = dto.Title,
                 Description = dto.Description,
-                CreatedAt=DateTime.Now,
+                CreatedAt=DateTime.UtcNow,
                 MeetingUrl = hasUrl ? dto.MeetingUrl : null,
                 OfflineAddress = hasAddress ? dto.OfflineAddress : null,
                 DurationMinutes =dto.DurationMinutes,

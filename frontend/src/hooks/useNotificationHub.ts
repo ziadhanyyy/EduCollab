@@ -1,15 +1,18 @@
-import { useEffect, useRef } from 'react';
 import * as signalR from '@microsoft/signalr';
+import { useEffect, useRef } from 'react';
 import { TOKEN_KEY } from '@/lib/api';
 import type { Notification } from '@/types';
 
-const HUB_URL = `${(
-  import.meta.env.VITE_SIGNALR_BASE_URL ?? 'http://localhost:5184'
-).replace(/\/+$/, '')}/hubs/notifications`;
+const HUB_URL = `${(import.meta.env.VITE_SIGNALR_BASE_URL ?? 'http://localhost:5184').replace(
+  /\/+$/,
+  '',
+)}/hubs/notifications`;
 
 export function useNotificationHub(onNotification?: (n: Notification) => void) {
   const callbackRef = useRef(onNotification);
-  useEffect(() => { callbackRef.current = onNotification; });
+  useEffect(() => {
+    callbackRef.current = onNotification;
+  });
 
   useEffect(() => {
     const token = localStorage.getItem(TOKEN_KEY);
@@ -32,8 +35,6 @@ export function useNotificationHub(onNotification?: (n: Notification) => void) {
     connection
       .start()
       .then(() => {
-        // Backend's NotificationHub.OnConnectedAsync auto-subscribes the user
-        // to their personal group — no extra invoke needed.
         if (cancelled) {
           connection.stop().catch(() => {});
         }

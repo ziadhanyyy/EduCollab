@@ -1,11 +1,11 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import GroupForm from '@/components/groups/GroupForm';
-import { extractErrorMessage } from '@/utils/helpers';
 import api from '@/lib/api';
-import type { CreateGroupRequest, UpdateGroupRequest, Group } from '@/types';
+import type { CreateGroupRequest, Group, UpdateGroupRequest } from '@/types';
+import { extractErrorMessage } from '@/utils/helpers';
 
 export default function CreateGroup() {
   const navigate = useNavigate();
@@ -44,4 +44,3 @@ export default function CreateGroup() {
     </div>
   );
 }
-

@@ -4,7 +4,6 @@ import type { UserRole } from '@/types';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  /** Roles allowed to access this route. Omit to allow any authenticated user. */
   roles?: UserRole[];
 }
 
@@ -12,7 +11,6 @@ export default function ProtectedRoute({ children, roles }: ProtectedRouteProps)
   const { isAuthenticated, user, loading } = useAuth();
   const location = useLocation();
 
-  // Still restoring session — render nothing to avoid flash redirects
   if (loading) return null;
 
   if (!isAuthenticated) {
