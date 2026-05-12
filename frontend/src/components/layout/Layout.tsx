@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom';
-import Navbar from './Navbar';
 import { Toaster } from '@/components/ui/sonner';
+import Navbar from './Navbar';
 
 export default function Layout() {
   return (

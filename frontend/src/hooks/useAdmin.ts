@@ -1,16 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import api from '@/lib/api';
-import type { PendingCreator, Group } from '@/types';
+import type { Group, PendingCreator } from '@/types';
 import { extractErrorMessage } from '@/utils/helpers';
-
-// ─── Pending creators ─────────────────────────────────────────────────────────
 
 export function usePendingCreators() {
   const [creators, setCreators] = useState<PendingCreator[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetch = useCallback(async () => {
+  const fetchCreators = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -23,7 +21,9 @@ export function usePendingCreators() {
     }
   }, []);
 
-  useEffect(() => { fetch(); }, [fetch]);
+  useEffect(() => {
+    fetchCreators();
+  }, [fetchCreators]);
 
   const approve = useCallback(async (creatorId: string) => {
     await api.post(`/admin/creators/${creatorId}/approve`);
@@ -35,17 +35,15 @@ export function usePendingCreators() {
     setCreators((prev) => prev.filter((c) => c.id !== creatorId));
   }, []);
 
-  return { creators, loading, error, refetch: fetch, approve, reject };
+  return { creators, loading, error, refetch: fetchCreators, approve, reject };
 }
-
-// ─── Pending groups ───────────────────────────────────────────────────────────
 
 export function usePendingGroups() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetch = useCallback(async () => {
+  const fetchGroups = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -58,7 +56,9 @@ export function usePendingGroups() {
     }
   }, []);
 
-  useEffect(() => { fetch(); }, [fetch]);
+  useEffect(() => {
+    fetchGroups();
+  }, [fetchGroups]);
 
   const approve = useCallback(async (groupId: string) => {
     await api.post(`/admin/groups/${groupId}/approve`);
@@ -70,5 +70,5 @@ export function usePendingGroups() {
     setGroups((prev) => prev.filter((g) => g.id !== groupId));
   }, []);
 
-  return { groups, loading, error, refetch: fetch, approve, reject };
+  return { groups, loading, error, refetch: fetchGroups, approve, reject };
 }

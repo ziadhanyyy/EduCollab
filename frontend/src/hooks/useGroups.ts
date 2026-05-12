@@ -10,6 +10,7 @@ export function useGroups(params?: GroupSearchParams) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: JSON.stringify(params) is used intentionally for deep comparison of params object
   const fetchGroups = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -21,7 +22,7 @@ export function useGroups(params?: GroupSearchParams) {
     } finally {
       setLoading(false);
     }
-  }, [JSON.stringify(params)]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(params)]);
 
   useEffect(() => {
     fetchGroups();
@@ -29,8 +30,6 @@ export function useGroups(params?: GroupSearchParams) {
 
   return { groups, loading, error, refetch: fetchGroups };
 }
-
-// ─── Groups I belong to ───────────────────────────────────────────────────────
 
 export function useMyGroups() {
   const [groups, setGroups] = useState<Group[]>([]);
@@ -56,8 +55,6 @@ export function useMyGroups() {
 
   return { groups, loading, error, refetch: fetchMyGroups };
 }
-
-// ─── Single group ─────────────────────────────────────────────────────────────
 
 export function useGroup(groupId: string) {
   const [group, setGroup] = useState<Group | null>(null);

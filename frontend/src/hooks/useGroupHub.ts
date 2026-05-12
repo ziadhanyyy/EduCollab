@@ -1,11 +1,12 @@
-import { useEffect, useRef } from 'react';
 import * as signalR from '@microsoft/signalr';
+import { useEffect, useRef } from 'react';
 import { TOKEN_KEY } from '@/lib/api';
 import type { Message, StudyMaterial } from '@/types';
 
-const HUB_URL = `${(
-  import.meta.env.VITE_SIGNALR_BASE_URL ?? 'http://localhost:5184'
-).replace(/\/+$/, '')}/hubs/group`;
+const HUB_URL = `${(import.meta.env.VITE_SIGNALR_BASE_URL ?? 'http://localhost:5184').replace(
+  /\/+$/,
+  '',
+)}/hubs/group`;
 
 interface UseGroupHubOptions {
   groupId: string;
@@ -17,13 +18,16 @@ export function useGroupHub({ groupId, onMessage, onMaterialUploaded }: UseGroup
   const onMessageRef = useRef(onMessage);
   const onMaterialRef = useRef(onMaterialUploaded);
 
-  useEffect(() => { onMessageRef.current = onMessage; });
-  useEffect(() => { onMaterialRef.current = onMaterialUploaded; });
+  useEffect(() => {
+    onMessageRef.current = onMessage;
+  });
+  useEffect(() => {
+    onMaterialRef.current = onMaterialUploaded;
+  });
 
   useEffect(() => {
     if (!groupId) return;
 
-    
     let cancelled = false;
 
     const connection = new signalR.HubConnectionBuilder()
@@ -49,9 +53,9 @@ export function useGroupHub({ groupId, onMessage, onMaterialUploaded }: UseGroup
           connection.stop().catch(() => {});
           return;
         }
-        connection.invoke('JoinGroup', groupId).catch((err) =>
-          console.warn('[GroupHub] JoinGroup error:', err)
-        );
+        connection
+          .invoke('JoinGroup', groupId)
+          .catch((err) => console.warn('[GroupHub] JoinGroup error:', err));
       })
       .catch((err) => {
         if (!cancelled) console.warn('[GroupHub] connection error:', err);

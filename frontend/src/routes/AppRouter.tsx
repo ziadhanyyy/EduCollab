@@ -1,8 +1,8 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
-import { Skeleton } from '@/components/ui/skeleton';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import Layout from '@/components/layout/Layout';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const Home = lazy(() => import('@/pages/public/Home'));
 const BrowseGroups = lazy(() => import('@/pages/public/BrowseGroups'));
@@ -76,7 +76,7 @@ export default function AppRouter() {
               }
             />
 
-              <Route
+            <Route
               path="/creator/groups"
               element={
                 <ProtectedRoute roles={['GroupCreator']}>

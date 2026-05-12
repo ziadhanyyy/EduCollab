@@ -1,13 +1,7 @@
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from 'react';
+import type React from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import api, { TOKEN_KEY } from '@/lib/api';
 import type { LoginResponse, User, UserRole } from '@/types';
-
 
 interface AuthContextType {
   user: User | null;
@@ -23,7 +17,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-
 function buildUser(res: LoginResponse): User {
   return {
     id: res.userId,
@@ -35,12 +28,9 @@ function buildUser(res: LoginResponse): User {
   };
 }
 
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(() =>
-    localStorage.getItem(TOKEN_KEY)
-  );
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY));
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -66,7 +56,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .finally(() => setLoading(false));
   }, []);
 
-  // Listen for 401 events from the Axios interceptor
   useEffect(() => {
     const handleForceLogout = () => {
       setUser(null);
@@ -88,7 +77,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = useCallback(() => {
-    api.post('/auth/logout',).catch(() => {
+    api.post('/auth/logout').catch(() => {
+      console.log('Logout failed, but clearing local state anyway');
     });
     localStorage.removeItem(TOKEN_KEY);
     setToken(null);
@@ -109,7 +99,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
-
 
 export function useAuth(): AuthContextType {
   const ctx = useContext(AuthContext);

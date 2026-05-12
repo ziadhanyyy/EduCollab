@@ -11,7 +11,6 @@ export function useMessages(groupId: string) {
   const [loadingMore, setLoadingMore] = useState(false);
   const pageRef = useRef(1);
 
-  // Backend returns newest-first (DESC). Reverse for display (oldest top → newest bottom).
   const fetchPage = useCallback(
     async (page: number): Promise<Message[]> => {
       const { data } = await api.get<Message[]>(`/messages/group/${groupId}`, {
@@ -51,8 +50,10 @@ export function useMessages(groupId: string) {
 
   const send = useCallback(
     async (content: string): Promise<Message> => {
-      const { data } = await api.post<Message>('/messages', { groupId, content });
-      // Optimistically add; SignalR echo is deduplicated by id
+      const { data } = await api.post<Message>('/messages', {
+        groupId,
+        content,
+      });
       setMessages((prev) => {
         if (prev.some((m) => m.id === data.id)) return prev;
         return [...prev, data];
@@ -62,7 +63,6 @@ export function useMessages(groupId: string) {
     [groupId],
   );
 
-  /** Called by SignalR ReceiveMessage — deduplicates by id */
   const appendMessage = useCallback((msg: Message) => {
     setMessages((prev) => {
       if (prev.some((m) => m.id === msg.id)) return prev;
@@ -70,5 +70,13 @@ export function useMessages(groupId: string) {
     });
   }, []);
 
-  return { messages, loading, hasMore, loadingMore, loadMore, send, appendMessage };
+  return {
+    messages,
+    loading,
+    hasMore,
+    loadingMore,
+    loadMore,
+    send,
+    appendMessage,
+  };
 }

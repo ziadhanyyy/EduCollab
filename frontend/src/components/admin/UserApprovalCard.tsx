@@ -1,11 +1,11 @@
+import { Calendar, Check, Loader2, User, X } from 'lucide-react';
 import { useState } from 'react';
-import { Check, X, User, Calendar, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import type { PendingCreator } from '@/types';
-import { formatDate, extractErrorMessage } from '@/utils/helpers';
+import { extractErrorMessage, formatDate } from '@/utils/helpers';
 
 interface UserApprovalCardProps {
   creator: PendingCreator;
@@ -46,7 +46,6 @@ export default function UserApprovalCard({ creator, onApprove, onReject }: UserA
   return (
     <Card className="hover:shadow-sm transition-shadow">
       <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        {/* Left — avatar + info */}
         <div className="flex items-center gap-3 min-w-0">
           <span className="h-10 w-10 rounded-full bg-primary/10 text-primary font-bold text-sm flex items-center justify-center uppercase shrink-0 select-none">
             {creator.displayName.charAt(0)}
@@ -71,7 +70,6 @@ export default function UserApprovalCard({ creator, onApprove, onReject }: UserA
           </div>
         </div>
 
-        {/* Right — actions */}
         <div className="flex items-center gap-2 shrink-0">
           <Button
             size="sm"

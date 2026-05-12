@@ -1,48 +1,34 @@
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
 import {
-  ArrowLeft, Users, Monitor, MapPin, Clock, Calendar,
-  CheckCircle, Loader2
+  ArrowLeft,
+  Calendar,
+  CheckCircle,
+  Clock,
+  Loader2,
+  MapPin,
+  Monitor,
+  Users,
 } from 'lucide-react';
+import { useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
+import { GroupDetailRow } from '@/components/group-detail/GroupDetailRow';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
-import { useGroup } from '@/hooks/useGroups';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/hooks/useAuth';
-import { extractErrorMessage, formatDateTime, meetingTypeLabel, groupStatusLabel } from '@/utils/helpers';
+import { useGroup } from '@/hooks/useGroups';
 import api from '@/lib/api';
 import type { JoinRequest } from '@/types';
+import {
+  extractErrorMessage,
+  formatDateTime,
+  groupStatusLabel,
+  meetingTypeLabel,
+  subjectColor,
+} from '@/utils/helpers';
 
-// ─── Subject badge colour helper (same as GroupCard) ─────────────────────────
-const SUBJECT_COLORS: Record<string, string> = {
-  chemistry:           'bg-sky-100 text-sky-700',
-  mathematics:         'bg-violet-100 text-violet-700',
-  'computer science':  'bg-indigo-100 text-indigo-700',
-  languages:           'bg-teal-100 text-teal-700',
-  physics:             'bg-orange-100 text-orange-700',
-  biology:             'bg-green-100 text-green-700',
-};
-function subjectColor(subject: string) {
-  return SUBJECT_COLORS[subject.toLowerCase()] ?? 'bg-primary/10 text-primary';
-}
-
-// ─── Detail row helper ────────────────────────────────────────────────────────
-function DetailRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
-  return (
-    <div className="flex items-start gap-3">
-      <span className="text-muted-foreground mt-0.5 shrink-0">{icon}</span>
-      <div>
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="text-sm font-medium">{value}</p>
-      </div>
-    </div>
-  );
-}
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
 export default function GroupDetailPublic() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -70,7 +56,6 @@ export default function GroupDetailPublic() {
     }
   }
 
-  // ─── Loading skeleton ─────────────────────────────────────────────────────
   if (loading) {
     return (
       <div className="max-w-3xl mx-auto space-y-4 py-4">
@@ -82,7 +67,6 @@ export default function GroupDetailPublic() {
     );
   }
 
-  // ─── Error ────────────────────────────────────────────────────────────────
   if (error || !group) {
     return (
       <div className="max-w-3xl mx-auto py-10 text-center space-y-3">
@@ -99,8 +83,8 @@ export default function GroupDetailPublic() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6 py-2">
-      {/* Back link */}
       <button
+        type="button"
         onClick={() => navigate(-1)}
         className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
       >
@@ -108,12 +92,12 @@ export default function GroupDetailPublic() {
         Back
       </button>
 
-      {/* Hero card */}
       <Card>
         <CardContent className="p-6 space-y-5">
-          {/* Subject + status row */}
           <div className="flex items-center gap-3 flex-wrap">
-            <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${subjectColor(group.subject)}`}>
+            <span
+              className={`text-xs font-medium px-2.5 py-1 rounded-full ${subjectColor(group.subject)}`}
+            >
               {group.subject}
             </span>
             <Badge
@@ -128,7 +112,6 @@ export default function GroupDetailPublic() {
             </Badge>
           </div>
 
-          {/* Name */}
           <div>
             <h1 className="text-2xl font-bold">{group.name}</h1>
             {group.description && (
@@ -138,51 +121,51 @@ export default function GroupDetailPublic() {
 
           <Separator />
 
-          {/* Details grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <DetailRow
+            <GroupDetailRow
               icon={<Users className="h-4 w-4" />}
               label="Members"
               value={`${group.memberCount} / ${group.maxMembers}`}
             />
-            <DetailRow
+            <GroupDetailRow
               icon={
-                group.meetingType === 0
-                  ? <Monitor className="h-4 w-4" />
-                  : <MapPin className="h-4 w-4" />
+                group.meetingType === 0 ? (
+                  <Monitor className="h-4 w-4" />
+                ) : (
+                  <MapPin className="h-4 w-4" />
+                )
               }
               label="Meeting Format"
               value={meetingTypeLabel(group.meetingType)}
             />
             {group.meetingType === 0 && group.onlineLink && (
-              <DetailRow
+              <GroupDetailRow
                 icon={<Monitor className="h-4 w-4" />}
                 label="Online Link"
                 value={group.onlineLink}
               />
             )}
             {group.meetingType === 1 && group.offlineAddress && (
-              <DetailRow
+              <GroupDetailRow
                 icon={<MapPin className="h-4 w-4" />}
                 label="Location"
                 value={group.offlineAddress}
               />
             )}
             {group.meetingSchedule && (
-              <DetailRow
+              <GroupDetailRow
                 icon={<Calendar className="h-4 w-4" />}
                 label="Next Meeting"
                 value={formatDateTime(group.meetingSchedule)}
               />
             )}
-            <DetailRow
+            <GroupDetailRow
               icon={<Clock className="h-4 w-4" />}
               label="Created"
               value={formatDateTime(group.createdAt)}
             />
           </div>
 
-          {/* Member progress bar */}
           <div className="space-y-1.5">
             <div className="flex justify-between text-xs text-muted-foreground">
               <span>Capacity</span>
@@ -196,7 +179,6 @@ export default function GroupDetailPublic() {
             </div>
           </div>
 
-          {/* Creator */}
           <div className="flex items-center gap-3 pt-1">
             <span className="h-9 w-9 rounded-full bg-primary/10 text-primary text-sm font-bold flex items-center justify-center uppercase shrink-0 select-none">
               {group.creatorName.charAt(0)}
@@ -207,7 +189,6 @@ export default function GroupDetailPublic() {
             </div>
           </div>
 
-          {/* CTA */}
           {isStudent && (
             <div className="pt-1">
               {requested ? (
@@ -234,7 +215,9 @@ export default function GroupDetailPublic() {
 
           {!isAuthenticated && (
             <p className="text-sm text-muted-foreground">
-              <Link to="/login" className="text-primary hover:underline font-medium">Sign in</Link>{' '}
+              <Link to="/login" className="text-primary hover:underline font-medium">
+                Sign in
+              </Link>{' '}
               to request to join this group.
             </p>
           )}
@@ -243,4 +226,3 @@ export default function GroupDetailPublic() {
     </div>
   );
 }
-
